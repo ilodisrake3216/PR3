@@ -10,22 +10,17 @@ namespace ConsoleApp1
     internal class Listener
     {
         [Key]
-        [Required(ErrorMessage = "Поле обязательно для заполнения")]
         public int id { get; set; }
-
-        [Required(ErrorMessage = "Поле обязательно для заполнения")]
         public int misses { get; set; }
-        [Required(ErrorMessage = "Поле обязательно для заполнения")]
         [Range(0, 6, ErrorMessage = "В поле должно быть введено целое число от 0 до 6")]
         public int groupnumber { get; set; }
         [Required(ErrorMessage = "Поле обязательно для заполнения")]
-        [RegularExpression(@"^[a-zA-Zа-яА-ЯёЁ]+\s+[a-zA-Zа-яА-ЯёЁ]+\s+[a-zA-Zа-яА-ЯёЁ]+$",
+        [RegularExpression(@"^[a-zA-Zа-яА-ЯёЁ]+(?:\s+[a-zA-Zа-яА-ЯёЁ]+){1,2}$",
             ErrorMessage = "В поле должны быть введены буквы и оно должно содержать 3 слова")]
         public string FIO { get; set; }
 
         [Required(ErrorMessage = "Поле обязательно для заполнения")]
         public string course { get; set; }
-        [Required(ErrorMessage = "Поле обязательно для заполнения")]
         [Range(1, 100, ErrorMessage = "В поле должно быть введено целое число от 1 до 100")]
         public int rate { get; set; }
 
@@ -54,17 +49,17 @@ namespace ConsoleApp1
                 jelanie = int.Parse(Console.ReadLine());
                 if (groupnumber != 0)
                 {
-                    throw new AlreadyexstException();
+                    throw new AlreadyexstException(groupnumber);
                 }
-                if (rate > 50)
+                if (rate >= 50)
                 {
-                    if (rate > 60)
+                    if (rate >= 60)
                     {
-                        if (rate > 70)
+                        if (rate >= 70)
                         {
-                            if (rate > 80)
+                            if (rate >= 80)
                             {
-                                if (rate > 90)
+                                if (rate >= 90)
                                 {
                                     if (!group6full)
                                     {
@@ -108,26 +103,33 @@ namespace ConsoleApp1
                     }
                 if (groupnumber == 0)
                 {
-                    throw new GroupsFullException();
+                    throw new GroupsFullException(rate);
                 }
                 _logger.LogInformation(FIO + " был(а) успешно зачислен(а) в группу " + groupnumber);
             }
-            catch (AlreadyexstException) {
-                _logger.LogWarning("Не удалось зачислить вас в группу, вы будете возвращены к основному жкрану");
-            }
-            catch (GroupsFullException)
+            catch (AlreadyexstException a)
             {
-                _logger.LogWarning("Не удалось зачислить вас в группу, вы будете возвращены к основному жкрану");
+                _logger.LogWarning(a, "Повторное зачисление, группа {GroupNumber}", groupnumber);
+                Console.WriteLine(a.Message);
+                Run = false;
+            }
+            catch (GroupsFullException a)
+            {
+                _logger.LogWarning(a, "Нет мест для балла {Rate}", rate);
+                Console.WriteLine(a.Message + ". Попробуйте позже.");
+                Run = false;
             }
             catch (FormatException)
             {
                 _logger.LogError("Вы ввели не число");
                 _logger.LogWarning("Не удалось зачислить вас в группу, вы будете возвращены к основному жкрану");
+                Run = false;
             }
            catch (Exception)
             {
                 _logger.LogError("Непредвиденная ошибка");
                 _logger.LogWarning("Не удалось зачислить вас в группу, вы будете возвращены к основному жкрану");
+                Run = false;
             }
             finally
             {
@@ -145,6 +147,13 @@ namespace ConsoleApp1
                     _logger.LogInformation("группа 6 - заполнена");
             }
 
+        }
+
+
+        public static bool Run
+        {
+            set;
+            get;
         }
     }
 }

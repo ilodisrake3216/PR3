@@ -11,6 +11,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            Listener.Run = true;
             using (ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder.AddConsole();
@@ -18,56 +19,59 @@ namespace ConsoleApp1
             {
                 ILogger<Listener> logger = loggerFactory.CreateLogger<Listener>();
                 Listener obj = new Listener(logger);
-                Console.WriteLine("Введите ФИО");
-                obj.FIO = Console.ReadLine();
-                if (!ValidateField(obj, obj.FIO, nameof(obj.FIO)))
+     
+                while (Listener.Run)
                 {
-                    Console.WriteLine("В поле должны быть введены буквы и оно должно одержать 3 слова");
+                name:
+                    Console.WriteLine("Введите ФИО");
+                    string name = Console.ReadLine();
+                    if (name == obj.FIO)
+                    {
+                        logger.LogError("Такой пользователь уже есть, если ваше ФИО и правда совпало и вы не желаете менять логин обратитесь в поддержку");
+                        return;
+                    }
+                    else
+                        obj.FIO = name;
+                        if (!ValidateField(obj, obj.FIO, nameof(obj.FIO)))
+                    {
+                        logger.LogWarning("В поле должны быть введены буквы и оно должно cодержать 2 или 3 слова");
+                        goto name;
+                    }
+                group:
+                    Console.WriteLine("Введите номер группы. 0 если группы нет");
+                    if (int.TryParse(Console.ReadLine(), out int group)) obj.groupnumber = group;
+                    else obj.groupnumber = -1;
+                    if (!ValidateField(obj, obj.groupnumber, nameof(obj.groupnumber)))
+                    {
+                        logger.LogWarning("В поле дожно быть введено целое число от 0 до 6");
+                        goto group;
+                    }
+                rate:
+                    Console.WriteLine("Введите бал");
+                    if (int.TryParse(Console.ReadLine(), out int rateValue)) obj.rate = rateValue;
+                    else obj.rate = -1;
+                    if (!ValidateField(obj, obj.rate, nameof(obj.rate)))
+                    {
+                        logger.LogWarning("В поле должно быть введено целое число от 1 до 100");
+                        goto rate;
+                    }
+                    obj.autopodbor();
+                    Console.WriteLine();
+                    Console.ReadLine();
+                    Console.WriteLine("Заврешить? [1] - чтобы завершить");
+                    if(Console.ReadLine()=="1")
+                    {
+                        Listener.Run = false;
+                    }
                 }
-                Console.WriteLine("Введите номер группы. 0 если группы нет");
-                if (int.TryParse(Console.ReadLine(), out int group)) obj.groupnumber = group;
-                else obj.groupnumber = -1;
-                if (!ValidateField(obj, obj.groupnumber, nameof(obj.groupnumber)))
-                {
-                    Console.WriteLine("В поле дожно быть введено целое число от 0 до 6");
+                Console.WriteLine("Заврешение работы");
                 }
-                Console.WriteLine("Введите бал");
-                if (int.TryParse(Console.ReadLine(), out int rateValue)) obj.rate = rateValue;
-                else obj.rate = -1;
-                if (!ValidateField(obj, obj.rate, nameof(obj.rate)))
-                {
-                    Console.WriteLine("В поле должно быть введено целое число от 1 до 100");
-                }
-                obj.autopodbor();
-                Console.WriteLine("Добавим еще одного студента");
-                Console.WriteLine("Введите ФИО");
-                obj.FIO = Console.ReadLine();
-                if (!ValidateField(obj, obj.FIO, nameof(obj.FIO)))
-                {
-                    Console.WriteLine("В поле должны быть введены буквы и оно должно одержать 3 слова");
-                }
-                Console.WriteLine("Введите номер группы. 0 если группы нет");
-                if (int.TryParse(Console.ReadLine(), out int group2)) obj.groupnumber = group2;
-                else obj.groupnumber = -1;
-                if (!ValidateField(obj, obj.groupnumber, nameof(obj.groupnumber)))
-                {
-                    Console.WriteLine("В поле дожно быть введено целое число от 0 до 6");
-                }
-                Console.WriteLine("Введите бал");
-                if (int.TryParse(Console.ReadLine(), out int rateValue2)) obj.rate = rateValue2;
-                else obj.rate = -1;
-                if (!ValidateField(obj, obj.rate, nameof(obj.rate)))
-                {
-                    Console.WriteLine("В поле должно быть введено целое число от 1 до 100");
-                }
-                obj.autopodbor();
+            }
+            static bool ValidateField(object model, object value, string propertyName)
+            {
+                var context = new ValidationContext(model) { MemberName = propertyName };
+                var results = new List<ValidationResult>();
+                return Validator.TryValidateProperty(value, context, results);
             }
         }
-        static bool ValidateField(object model, object value, string propertyName)
-        {
-            var context = new ValidationContext(model) { MemberName = propertyName };
-            var results = new List<ValidationResult>();
-            return Validator.TryValidateProperty(value, context, results);
-        }
     }
-}

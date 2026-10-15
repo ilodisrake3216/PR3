@@ -9,14 +9,8 @@ namespace ConsoleApp1
 {
     internal class GroupsFullException: Exception
     {
-        private readonly ILogger<GroupsFullException> _logger;
-        public GroupsFullException(ILogger<GroupsFullException> logger)
-        {
-            _logger = logger;
-        }
-        public GroupsFullException()
-        {
-            _logger.LogError("Кажется все группы заполнены, возвращайтесь позже");
-        }
+        private readonly ILogger<Listener> _logger;
+        public GroupsFullException(int rate)
+            : base($"Нет свободных мест в группе для балла {rate}") { }
     }
 }
