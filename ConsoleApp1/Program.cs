@@ -39,7 +39,8 @@ namespace ConsoleApp1
                     }
                 group:
                     Console.WriteLine("Введите номер группы. 0 если группы нет");
-                    obj.groupnumber = int.Parse(Console.ReadLine());
+                    if (int.TryParse(Console.ReadLine(), out int group)) obj.groupnumber = group;
+                    else obj.groupnumber = 7;
                     if (!ValidateField(obj, obj.groupnumber, nameof(obj.groupnumber)))
                     {
                         logger.LogWarning("В поле дожно быть введено целое число от 0 до 6");
